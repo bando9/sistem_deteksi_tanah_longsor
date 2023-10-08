@@ -24,7 +24,7 @@ void setup() {
  
   // Pindahkan kursor ke baris berikutnya dan cetak lagi
   lcd.setCursor(0, 1);      
-  lcd.print("INSTRUMENTASI");
+  lcd.print("INSTRUMENTASI KU");
 }
  
 void loop() {

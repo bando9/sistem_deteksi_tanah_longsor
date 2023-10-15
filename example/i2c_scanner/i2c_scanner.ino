@@ -26,6 +26,12 @@
 // This sketch tests the standard 7-bit addresses
 // Devices with higher bit address might not be seen properly.
 //
+// 
+// Koneksi modul I2C LCD dengan Arduino : 
+//  Vcc  -- Vin
+//  Gnd  -- GND
+//  SDA  -- pin A4
+//  SCL  -- pin A5
  
 #include <Wire.h>
  

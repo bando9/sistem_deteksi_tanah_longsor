@@ -14,21 +14,48 @@ void setup() {
  
   // Nyalakan backlight
   lcd.backlight();
- 
-  // Pindahkan kursor ke kolom 0 dan baris 0
-  // (baris 1)
-  lcd.setCursor(0, 0);
- 
-  // Cetak hellow ke layar
-  lcd.print("ELEKTRONIKA DAN ");
- 
-  // Pindahkan kursor ke baris berikutnya dan cetak lagi
+
+  lcd.home();
+  lcd.clear();
+  lcd.setCursor(0, 0); 
+  lcd.print("HALO SEMUA! ^_^");
   lcd.setCursor(0, 1);      
-  lcd.print("INSTRUMENTASI KU");
+  lcd.print("__SLIDESENTRY__");
+  
+  delay(3500);
+
+  for(int j = 1; j<= 16; j++) {
+    lcd.scrollDisplayLeft();
+    delay(100);
+  }
 }
  
 void loop() {
-  //Kode loop silahkan disesuaikan
-  //...
+  
+  // Info pertama
+  // lcd.home();
+  // lcd.clear();
+  // lcd.setCursor(0, 0);
  
+  // lcd.print("HALO SEMUA! ^_^");
+  // lcd.setCursor(0, 1);      
+  // lcd.print("__SLIDESENTRY__");
+  
+  // delay(3000);
+
+  // for(int j = 1; j<= 16; j++) {
+  //   lcd.scrollDisplayLeft();
+  //   delay(100);
+  // }
+
+  // info kedua
+  lcd.home();
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Moisture lv: 102");
+  lcd.setCursor(0,1);
+  lcd.print("rain sensor: 1");
+  
+  delay(2500);
+  lcd.clear();
 }

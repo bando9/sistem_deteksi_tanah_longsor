@@ -1,8 +1,8 @@
 // const int trigPin = 12; // d6
 // const int echoPin = 13; // d7
 
-#define echoPin D2
-#define trigPin D3
+#define echoPin D3
+#define trigPin D4
 
 float duration;
 float distance;

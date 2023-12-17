@@ -14,12 +14,6 @@ int intensity = 20;
 int sensor = A0;
 int val;
 
-BlynkTimer timer;
-
-void myTimerEvent() {
-  int val 
-}
-
 void setup() {
   Serial.begin(9600);
 

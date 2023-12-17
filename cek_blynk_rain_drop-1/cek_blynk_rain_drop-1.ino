@@ -1,5 +1,6 @@
 // cek raindrop
 #define BLYNK_PRINT Serial
+#define sensor D5
 
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
@@ -11,14 +12,13 @@ char pass[] = "12345678";
 
 // inisiasi variabel
 int intensity = 20;
-int sensor = A0;
 int val;
 
-BlynkTimer timer;
+// BlynkTimer timer;
 
-void myTimerEvent() {
-  int val 
-}
+// void myTimerEvent() {
+//   int val 
+// }
 
 void setup() {
   Serial.begin(9600);
@@ -30,8 +30,8 @@ void setup() {
 }
 
 void loop() {
-  val = analogRead(sensor);
-  val = map(val,0,1023,100,0); // mengubah nilai 0-1023 menjadi 0-100
+  val = digitalRead(sensor);
+  val = map(val,0,1023,0,100); // mengubah nilai 0-1023 menjadi 0-100
   Blynk.run();
   Serial.println(val);
   if (val > intensity) {

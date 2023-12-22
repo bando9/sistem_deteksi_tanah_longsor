@@ -7,10 +7,16 @@
 #define echoPin D3
 #define trigPin D4
 #define sensor_rain D5
+#define LEDr D6
+#define LEDy D7
+#define LEDg D8
 // scl d1 (LCD)
 // sda d2 (LCD)
 
 BlynkTimer timer;
+WidgetLED led1(V4); // cek
+WidgetLED led2(V5); // cek
+WidgetLED led3(V6); // cek
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 char auth[] = "BmNHecm3Rsia6ZL7dQwpNo_Rg5zSDgBJ";
@@ -40,6 +46,11 @@ void setup() {
   pinMode(sensor_rain, INPUT);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
+
+  // setting lampu indikator
+  pinMode(LEDr, OUTPUT); // cek
+  pinMode(LEDy, OUTPUT); // cek
+  pinMode(LEDg, OUTPUT); // cek
 
   // start lcd
   lcd.begin(16,2);
@@ -89,6 +100,39 @@ void loop() {
 
   Serial.print("Jarak: ");
   Serial.println(jarak);
+
+  // cek logika jarak
+  if(jarak > 200){
+    Serial.println("jauh pol");
+    led1.on(); // cek
+    led2.off(); // cek
+    led3.off(); // cek
+    digitalWrite(LEDr, HIGH);
+    digitalWrite(LEDy, LOW);
+    digitalWrite(LEDg, LOW);
+  } else if(jarak > 100){
+    Serial.println("jauh");
+    led1.off(); // cek
+    led2.on(); // cek
+    led3.off(); // cek
+    digitalWrite(LEDr, LOW);
+    digitalWrite(LEDy, HIGH);
+    digitalWrite(LEDg, LOW);
+  } else if(jarak > 50){
+    Serial.println("agak jauh");
+    led1.off(); // cek
+    led2.off(); // cek
+    led3.on(); // cek
+    digitalWrite(LEDr, LOW);
+    digitalWrite(LEDy, LOW);
+    digitalWrite(LEDg, HIGH);
+  } else {
+    Serial.println("dekat");
+    led1.off(); // cek
+    digitalWrite(LEDr, LOW); // cek lampu merah
+    digitalWrite(LEDy, LOW);
+    digitalWrite(LEDg, LOW);
+  }
 
   Serial.print("Lembab: ");
   Serial.println(adc);

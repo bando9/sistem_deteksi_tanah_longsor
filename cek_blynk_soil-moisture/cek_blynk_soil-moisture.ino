@@ -13,12 +13,10 @@ BlynkTimer timer;
 
 void myTimerEvent() {
   int adc = analogRead(A0);
-  // int lb = analogRead(A0);
   float tegangan = adc * (5.0 / 1023.0);
-  adc = map(adc,0,1024,1024,0);
+  adc = map(adc,400,1023,100,0);
   Blynk.virtualWrite(V2, adc);
   Blynk.virtualWrite(V3, tegangan);
-  // Blynk.virtualWrite(V4, lb);
 }
 
 void setup() {

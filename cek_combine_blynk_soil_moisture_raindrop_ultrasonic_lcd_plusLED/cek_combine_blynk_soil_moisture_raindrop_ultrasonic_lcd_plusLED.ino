@@ -32,7 +32,7 @@ int adc;
 void myTimerEvent() {
   adc = analogRead(A0);
   float tegangan = adc * (5.0 / 1023.0);
-  adc = map(adc,0,1024,1024,0);
+  adc = map(adc,400,1023,100,0);
 
   Blynk.virtualWrite(V1, jarak);
   Blynk.virtualWrite(V2, adc);

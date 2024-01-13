@@ -36,12 +36,12 @@ int humadity;
 
 void myTimerEvent() {
   humadity = analogRead(A0);
-  float resist = humadity * (5.0 / 1023.0);
+  float voltage = humadity * (5.0 / 1023.0);
   humadity = map(humadity, 400, 1023, 100, 0);
 
   Blynk.virtualWrite(V1, distance);
   Blynk.virtualWrite(V2, humadity);
-  Blynk.virtualWrite(V3, resist);
+  Blynk.virtualWrite(V3, voltage);
 }
 
 // the setup function runs once when you press reset or power the board
@@ -87,6 +87,7 @@ void loop() {
   timer.run();
 }
 
+// 
 void sendSensor() {
   rain = digitalRead(rain_sensor);
 

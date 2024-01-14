@@ -65,7 +65,7 @@ void setup() {
     Serial.print(".");
   }
   Serial.println("");
-  Serial.ptinln("WiFi connected");
+  Serial.println("WiFi connected");
 
   // Initialize Sensor Pins
   pinMode(RAIN_SENSOR_PIN, INPUT);

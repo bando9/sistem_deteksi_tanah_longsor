@@ -34,6 +34,13 @@ float distance;
 int rainStatus;
 int humadityValue;
 
+// Thresholds
+const int thresholdSafe = 5;
+const int thresholdWarning = 15;
+const int thresholdDanger = 30;
+const int humadityThresholdLow = 40;
+const int humadityThresholdHigh = 80;
+
 // Timer Event for Blynk
 void myTimerEvent() {
   // Read humadity from analog pin A0
@@ -51,6 +58,14 @@ void myTimerEvent() {
 void setup() {
   // Start Serial Communication
   Serial.begin(9600);
+
+  // WiFi notification
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(250);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.ptinln("WiFi connected");
 
   // Initialize Sensor Pins
   pinMode(RAIN_SENSOR_PIN, INPUT);
@@ -89,6 +104,7 @@ void loop() {
   Blynk.run();
   timer.run();
 }
+
 
 // Function to Read and Send Sensor Data
 void sendSensor() {

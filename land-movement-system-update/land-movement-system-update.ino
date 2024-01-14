@@ -1,194 +1,137 @@
+// Libraries
 #include <ESP8266WiFi.h>
-#include <Wire.h>
+#include <BlynkSimpleEsp8266.h>
 #include <LiquidCrystal_I2C.h>
 
-const int trigPin = D1;       // Pin Trigger sensor ultrasonik
-const int echoPin = D2;       // Pin Echo sensor ultrasonik
-const int humidityPin = A0;   // Pin sensor kelembaban (analog)
-const int raindropPin = D5;   // Pin sensor raindrop (digital)
+// Pin Definitions
+#define BLYNK_PRINT Serial
+#define ECHO_PIN D3         // Pin Trigger sensor ultrasonik
+#define TRIG_PIN D4         // Pin Echo sensor ultrasonik
+#define RAIN_SENSOR_PIN D5  // Pin sensor raindrop
+#define LED_RED_PIN D6      // Pin LED bahaya (merah)
+#define LED_YELLOW_PIN D7   // Pin LED waspada (kuning)
+#define LED_GREEN_PIN D8    // Pin LED aman (hijau)
+// scl d1 (LCD)
+// sda d2 (LCD)
 
-int previousDistance = 0;
+// Blynk Setup
+BlynkTimer timer;
+WidgetLED led1(V4);
+WidgetLED led2(V5);
+WidgetLED led3(V6);
 
-// Nilai ambang untuk kategori "Aman", "Waspada", dan "Bahaya"
+// LCD Setup
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Default address 0x27
+
+// Blynk Authentication and WiFi Credentials
+char auth[] = "BmNHecm3Rsia6ZL7dQwpNo_Rg5zSDgBJ";
+char ssid[] = "UIN_Walisongo-AX";
+char pass[] = "";
+
+// Sensor Variables
+long pulseDuration;
+float distance;
+int rainStatus;
+int humadityValue;
+
+// Threshold
+const int previousDistance = 0;
 const int thresholdSafe = 5;
 const int thresholdWarning = 15;
 const int thresholdDanger = 30;
-
-// Nilai ambang kelembaban untuk kategori "Aman", "Waspada", dan "Bahaya"
 const int humidityThresholdLow = 40;
 const int humidityThresholdHigh = 80;
 
-LiquidCrystal_I2C lcd(0x27, 16, 2);  // Alamat I2C LCD 0x27, 16 karakter per baris, 2 baris
+// Timer Event for Blynk
+void myTimerEvent() {
+  // Read humadity from analog pin A0
+  humadityValue = analogRead(A0);
+  float voltage = humadityValue * (5.0 / 1023.0);
+  humadityValue = map(humadityValue, 400, 1023, 100, 0);
 
+  // Send sensor data to Blynk app
+  Blynk.virtualWrite(V1, distance);
+  Blynk.virtualWrite(V2, humadityValue);
+  Blynk.virtualWrite(V3, voltage);
+}
+
+// Setup Function
 void setup() {
+  // Start Serial Communication
   Serial.begin(9600);
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
-  pinMode(raindropPin, INPUT);
 
-  // Menggunakan pin D5 untuk SDA dan D6 untuk SCL
-  Wire.begin(D5, D6);
+  // WiFi notification
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(250);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
 
+  // Initialize Sensor Pins
+  pinMode(RAIN_SENSOR_PIN, INPUT);
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(LED_RED_PIN, OUTPUT);
+  pinMode(LED_YELLOW_PIN, OUTPUT);
+  pinMode(LED_GREEN_PIN, OUTPUT);
+
+  // Initialize LCD Screen
   lcd.begin(16, 2);
-  lcd.print("Monitoring Jarak");
-  delay(2000);
-}
+  lcd.init();
+  lcd.backlight();
 
-void sendUltrasonicPulse() {
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-}
-
-int calculateDistance() {
-  long duration = pulseIn(echoPin, HIGH);
-  int distance = duration * 0.034 / 2;
-  return max(distance, 0);
-}
-
-int readHumidity() {
-  return analogRead(humidityPin);
-}
-
-int readRaindrop() {
-  return digitalRead(raindropPin);
-}
-
-void handleNotification(int deltaDistance, int humidity, int raindrop) {
-  Serial.print("Jarak: ");
-  Serial.print(deltaDistance);
-  Serial.println(" cm");
-
-  Serial.print("Kelembaban: ");
-  Serial.print(humidity);
-  Serial.println("%");
-
-  Serial.print("Hujan: ");
-  Serial.println((raindrop == HIGH) ? "Ya" : "Tidak");
-
+  // Scroll LCD to left
+  lcd.home();
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Jarak: ");
-  lcd.print(deltaDistance);
-  lcd.print(" cm");
-
-  lcd.setCursor(0, 1);
-  lcd.print("Hujan: ");
-  lcd.print((raindrop == HIGH) ? "Ya" : "Tidak");
-
-  if (raindrop == HIGH) {
-    Serial.println("Status: Hujan");
-    lcd.setCursor(0, 1);
-    lcd.print("Status: Hujan   ");
-    // Implementasi notifikasi atau tindakan khusus ketika hujan terdeteksi
-  } else if (deltaDistance <= thresholdSafe && humidity <= humidityThresholdLow) {
-    Serial.println("Status: Aman");
-    lcd.setCursor(0, 1);
-    lcd.print("Status: Aman    ");
-    // Implementasi notifikasi atau tindakan untuk kategori "Aman"
-  } else if (deltaDistance <= thresholdWarning || 
-             (humidity > humidityThresholdLow && humidity <= humidityThresholdHigh)) {
-    Serial.println("Status: Waspada");
-    lcd.setCursor(0, 1);
-    lcd.print("Status: Waspada ");
-    // Implementasi notifikasi atau tindakan untuk kategori "Waspada"
-  } else {
-    Serial.println("Status: Bahaya");
-    lcd.setCursor(0, 1);
-    lcd.print("Status: Bahaya  ");
-    // Implementasi notifikasi atau tindakan untuk kategori "Bahaya"
+  lcd.print("-deteksi pergerakan tanah-");
+  for (int j = 1; j <= 25; j++) {
+    lcd.scrollDisplayLeft();
+    delay(500);
   }
+
+  // Connect to Blynk
+  Blynk.begin(auth, ssid, pass, "iot.serangkota.go.id", 8080);
+  timer.setInterval(1000L, myTimerEvent);  // 1000L = 1 sec
+
+  Serial.println("sistem siap digunakan");
+  Blynk.notify("Land Movement Ready");
 }
 
 void loop() {
-  sendUltrasonicPulse();
-  int currentDistance = calculateDistance();
+  rainStatus = digitalRead(RAIN_SENSOR_PIN);
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
 
-  int humidity = readHumidity();
-  int raindrop = readRaindrop();
+  int currentDistance = calculateDistance();
 
   int deltaDistance = abs(currentDistance - previousDistance);
   handleNotification(deltaDistance, humidity, raindrop);
 
   previousDistance = currentDistance;
 
-  delay(1000);  // Tunda sebentar sebelum membaca ulang (sesuaikan dengan kebutuhan)
-}
-
-
-
-#include <ESP8266WiFi.h>
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-#include <BlynkSimpleEsp8266.h>
-
-char auth[] = "Your_Blynk_Auth_Token";
-const char* ssid = "Your_WiFi_SSID";
-const char* password = "Your_WiFi_Password";
-
-const int trigPin = D1;
-const int echoPin = D2;
-const int humidityPin = A0;
-const int raindropPin = D5;
-
-int previousDistance = 0;
-const int thresholdSafe = 5;
-const int thresholdWarning = 15;
-const int thresholdDanger = 30;
-const int humidityThresholdLow = 40;
-const int humidityThresholdHigh = 80;
-
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-
-void setup() {
-  Serial.begin(9600);
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
-  pinMode(raindropPin, INPUT);
-
-  Wire.begin(D5, D6);
-
-  lcd.begin(16, 2);
-  lcd.print("Monitoring Jarak");
-  delay(2000);
-
-  Blynk.begin(auth, ssid, password);
-}
-
-void sendUltrasonicPulse() {
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-}
-
-int calculateDistance() {
-  long duration = pulseIn(echoPin, HIGH);
-  int distance = duration * 0.034 / 2;
-  return max(distance, 0);
-}
-
-int readHumidity() {
-  return analogRead(humidityPin);
-}
-
-int readRaindrop() {
-  return digitalRead(raindropPin);
-}
-
-void displayOnLCD(int deltaDistance, int raindrop) {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Jarak: ");
-  lcd.print(deltaDistance);
+  lcd.print(currentDistance);
   lcd.print(" cm");
 
   lcd.setCursor(0, 1);
   lcd.print("Hujan: ");
   lcd.print((raindrop == HIGH) ? "Ya" : "Tidak");
+
+  delay(1000);
+  Blynk.run();
+}
+
+int calculateDistance() {
+  long duration = pulseIn(ECHO_PIN, HIGH);
+  int distance = duration * 0.034 / 2;
+  return max(distance, 0);
 }
 
 void sendToBlynk(int deltaDistance, int humidity, int raindrop) {
@@ -213,22 +156,119 @@ void handleNotification(int deltaDistance, int humidity, int raindrop) {
   sendToBlynk(deltaDistance, humidity, raindrop);
 }
 
-void loop() {
-  sendUltrasonicPulse();
-  int currentDistance = calculateDistance();
 
-  int humidity = readHumidity();
-  int raindrop = readRaindrop();
 
-  int deltaDistance = abs(currentDistance - previousDistance);
-  handleNotification(deltaDistance, humidity, raindrop);
 
-  previousDistance = currentDistance;
+// #include <ESP8266WiFi.h>
+// #include <Wire.h>
+// #include <LiquidCrystal_I2C.h>
+// #include <BlynkSimpleEsp8266.h>
 
-  delay(1000);
+// char auth[] = "Your_Blynk_Auth_Token";
+// const char* ssid = "Your_WiFi_SSID";
+// const char* password = "Your_WiFi_Password";
 
-  Blynk.run();
-}
+// const int trigPin = D1;
+// const int echoPin = D2;
+// const int humidityPin = A0;
+// const int raindropPin = D5;
+
+// int previousDistance = 0;
+// const int thresholdSafe = 5;
+// const int thresholdWarning = 15;
+// const int thresholdDanger = 30;
+// const int humidityThresholdLow = 40;
+// const int humidityThresholdHigh = 80;
+
+// LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// void setup() {
+//   Serial.begin(9600);
+//   pinMode(trigPin, OUTPUT);
+//   pinMode(echoPin, INPUT);
+//   pinMode(raindropPin, INPUT);
+
+//   Wire.begin(D5, D6);
+
+//   lcd.begin(16, 2);
+//   lcd.print("Monitoring Jarak");
+//   delay(2000);
+
+//   Blynk.begin(auth, ssid, password);
+// }
+
+// void sendUltrasonicPulse() {
+//   digitalWrite(trigPin, LOW);
+//   delayMicroseconds(2);
+//   digitalWrite(trigPin, HIGH);
+//   delayMicroseconds(10);
+//   digitalWrite(trigPin, LOW);
+// }
+
+// int calculateDistance() {
+//   long duration = pulseIn(echoPin, HIGH);
+//   int distance = duration * 0.034 / 2;
+//   return max(distance, 0);
+// }
+
+// int readHumidity() {
+//   return analogRead(humidityPin);
+// }
+
+// int readRaindrop() {
+//   return digitalRead(raindropPin);
+// }
+
+// void displayOnLCD(int deltaDistance, int raindrop) {
+//   lcd.clear();
+//   lcd.setCursor(0, 0);
+//   lcd.print("Jarak: ");
+//   lcd.print(deltaDistance);
+//   lcd.print(" cm");
+
+//   lcd.setCursor(0, 1);
+//   lcd.print("Hujan: ");
+//   lcd.print((raindrop == HIGH) ? "Ya" : "Tidak");
+// }
+
+// void sendToBlynk(int deltaDistance, int humidity, int raindrop) {
+//   Blynk.virtualWrite(V1, deltaDistance);
+//   Blynk.virtualWrite(V2, humidity);
+//   Blynk.virtualWrite(V3, (raindrop == HIGH) ? "Hujan" : "Tidak Hujan");
+// }
+
+// void handleNotification(int deltaDistance, int humidity, int raindrop) {
+//   Serial.print("Jarak: ");
+//   Serial.print(deltaDistance);
+//   Serial.println(" cm");
+
+//   Serial.print("Kelembaban: ");
+//   Serial.print(humidity);
+//   Serial.println("%");
+
+//   Serial.print("Hujan: ");
+//   Serial.println((raindrop == HIGH) ? "Ya" : "Tidak");
+
+//   displayOnLCD(deltaDistance, raindrop);
+//   sendToBlynk(deltaDistance, humidity, raindrop);
+// }
+
+// void loop() {
+//   sendUltrasonicPulse();
+//   int currentDistance = calculateDistance();
+
+//   int humidity = readHumidity();
+//   int raindrop = readRaindrop();
+
+//   int deltaDistance = abs(currentDistance - previousDistance);
+//   handleNotification(deltaDistance, humidity, raindrop);
+
+//   previousDistance = currentDistance;
+
+//   delay(1000);
+
+//   Blynk.run();
+// }
 
 
 

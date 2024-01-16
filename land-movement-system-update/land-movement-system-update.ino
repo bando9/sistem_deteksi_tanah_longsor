@@ -37,7 +37,7 @@ const int humadityThresholdLow = 40;
 
 // Sensor Variables
 long pulseDuration;
-int previousDistance = 0;
+int previousDistance;
 int currentDistance;
 int deltaDistance;
 int rainStatus;
@@ -49,6 +49,7 @@ void myTimerEvent() {
 
   // Send sensor data to Blynk app
   Blynk.virtualWrite(V1, currentDistance);
+  Blynk.virtualWrite(V4, deltaDistance);
   Blynk.virtualWrite(V2, humadityValue);
   Blynk.virtualWrite(V3, voltage);
 }
@@ -57,6 +58,16 @@ void myTimerEvent() {
 void setup() {
   // Start Serial Communication
   Serial.begin(9600);
+
+  previousDistance = -1;
+
+  // // WiFi notification
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(250);
+  //   Serial.print(".");
+  // }
+  // Serial.println("");
+  // Serial.println("WiFi connected");
 
   // Initialize Sensor Pins
   pinMode(RAIN_SENSOR_PIN, INPUT);
@@ -78,7 +89,7 @@ void setup() {
   lcd.print("deteksi pergerakan tanah");
   for (int j = 1; j <= 25; j++) {
     lcd.scrollDisplayLeft();
-    delay(100);
+    delay(300);
   }
 
   // Connect to Blynk
@@ -129,7 +140,12 @@ void loop() {
 
   Serial.print("Hujan: ");
   Serial.println((rainStatus == HIGH) ? "Ya" : "Tidak");
+  
+  // Display on LCD
+  // lcd.home();
+  // lcd.clear();
 
+  // System Algorithm
   if (rainStatus == HIGH) {
     Serial.println("Status: Hujan");
     lcd.setCursor(0, 1);
@@ -138,20 +154,32 @@ void loop() {
     Serial.println("Status: Aman");
     lcd.setCursor(0, 1);
     lcd.print("Status: Aman");
-    led3.on();                          // Lampu aman blynk menyala
-    digitalWrite(LED_GREEN_PIN, HIGH);  // Lampu aman sistem menyala
+    led3.on();                           // Lampu aman blynk menyala
+    digitalWrite(LED_GREEN_PIN, HIGH);   // Lampu aman sistem menyala
+    led1.off();                          // Lampu aman blynk menyala
+    digitalWrite(LED_RED_PIN, LOW);     // Lampu aman sistem menyala
+    led2.off();                          // Lampu aman blynk menyala
+    digitalWrite(LED_YELLOW_PIN, LOW);  // Lampu aman sistem menyala
   } else if (deltaDistance <= thresholdWarning || (humadityValue > humadityThresholdLow && humadityValue <= humadityThresholdHigh)) {
     Serial.println("Status: Waspada");
     lcd.setCursor(0, 1);
     lcd.print("Status: Waspada");
     led2.on();
     digitalWrite(LED_YELLOW_PIN, HIGH);
+    led1.off();                         // Lampu aman blynk menyala
+    digitalWrite(LED_RED_PIN, LOW);    // Lampu aman sistem menyala
+    led3.off();                         // Lampu aman blynk menyala
+    digitalWrite(LED_GREEN_PIN, LOW);  // Lampu aman sistem menyala
   } else {
     Serial.println("Status: Bahaya");
     lcd.setCursor(0, 1);
     lcd.print("Status: Waspada");
-    led3.on();
+    led1.on();
     digitalWrite(LED_RED_PIN, HIGH);
+    led3.off();                          // Lampu aman blynk menyala
+    digitalWrite(LED_GREEN_PIN, LOW);   // Lampu aman sistem menyala
+    led2.off();                          // Lampu aman blynk menyala
+    digitalWrite(LED_YELLOW_PIN, LOW);  // Lampu aman sistem menyala
   }
 
   Blynk.run();

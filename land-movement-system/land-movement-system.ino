@@ -21,7 +21,7 @@ WidgetLED led2(V5);
 WidgetLED led3(V6);
 
 // LCD Setup
-LiquidCrystal_I2C lcd(0x27, 16, 2); // Default address 0x27
+LiquidCrystal_I2C lcd(0x27, 16, 2);  // Default address 0x27
 
 // Blynk Authentication and WiFi Credentials
 char auth[] = "BmNHecm3Rsia6ZL7dQwpNo_Rg5zSDgBJ";
@@ -32,7 +32,7 @@ char pass[] = "";
 long pulseDuration;
 float distance;
 int rainStatus;
-int humadityValue;
+int humidityValue;
 
 // Thresholds
 const int thresholdSafe = 5;
@@ -44,13 +44,13 @@ const int humadityThresholdHigh = 80;
 // Timer Event for Blynk
 void myTimerEvent() {
   // Read humadity from analog pin A0
-  humadityValue = analogRead(A0);
-  float voltage = humadityValue * (5.0 / 1023.0);
-  humadityValue = map(humadityValue, 400, 1023, 100, 0);
+  humidityValue = analogRead(A0);
+  float voltage = humidityValue * (5.0 / 1023.0);
+  humidityValue = map(humidityValue, 400, 1023, 100, 0);
 
   // Send sensor data to Blynk app
   Blynk.virtualWrite(V1, distance);
-  Blynk.virtualWrite(V2, humadityValue);
+  Blynk.virtualWrite(V2, humidityValue);
   Blynk.virtualWrite(V3, voltage);
 }
 
@@ -58,14 +58,6 @@ void myTimerEvent() {
 void setup() {
   // Start Serial Communication
   Serial.begin(9600);
-
-  // WiFi notification
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(250);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.println("WiFi connected");
 
   // Initialize Sensor Pins
   pinMode(RAIN_SENSOR_PIN, INPUT);
@@ -135,60 +127,28 @@ void sendSensor() {
     digitalWrite(LED_GREEN_PIN, LOW);
   }
 
-  // if (rainStatus == 0) {
-  //   Serial.println("Rain");
-  //   Blynk.notify("rain bro");
-  // } else {
-  //   Serial.println("kering");
-  // }
-
   Serial.print("Jarak: ");
   Serial.println(distance);
 
   Serial.print("Lembab: ");
-  Serial.println(humadityValue);
+  Serial.println(humidityValue);
 
   // System Algorithm
-  if (humadityValue > 40 || distance > 33) {
+  if (humidityValue > 40 || distance > 33) {
     Serial.println("kelembaban tinggi, bergerak agak jauh");
-    led1.on();
-    led2.off();
-    led3.off();
-    digitalWrite(LED_RED_PIN, HIGH);
-    digitalWrite(LED_YELLOW_PIN, LOW);
-    digitalWrite(LED_GREEN_PIN, LOW);
-  } else if (humadityValue > 40 || distance < 17) {
+    setDangerLEDs();
+  } else if (humidityValue > 40 || distance < 17) {
     Serial.println("kelembaban tinggi, bergerak agak jauh");
-    led1.on();
-    led2.off();
-    led3.off();
-    digitalWrite(LED_RED_PIN, HIGH);
-    digitalWrite(LED_YELLOW_PIN, LOW);
-    digitalWrite(LED_GREEN_PIN, LOW);
-  } else if (humadityValue > 30 || distance > 30) {
+    setDangerLEDs();
+  } else if (humidityValue > 30 || distance > 30) {
     Serial.println("kelembaban sedang, bergerak");
-    led1.off();
-    led2.on();
-    led3.off();
-    digitalWrite(LED_RED_PIN, LOW);
-    digitalWrite(LED_YELLOW_PIN, HIGH);
-    digitalWrite(LED_GREEN_PIN, LOW);
-  } else if (humadityValue > 30 || distance < 20) {
+    setWarningLEDs();
+  } else if (humidityValue > 30 || distance < 20) {
     Serial.println("kelembaban sedang, bergerak");
-    led1.off();
-    led2.on();
-    led3.off();
-    digitalWrite(LED_RED_PIN, LOW);
-    digitalWrite(LED_YELLOW_PIN, HIGH);
-    digitalWrite(LED_GREEN_PIN, LOW);
+    setWarningLEDs();
   } else {
     // No significant movement
-    led1.off();
-    led2.off();
-    led3.off();
-    digitalWrite(LED_RED_PIN, LOW);
-    digitalWrite(LED_YELLOW_PIN, LOW);
-    digitalWrite(LED_GREEN_PIN, LOW);
+    turnOffAllLEDs();
   }
 
   // Display on LCD
@@ -199,7 +159,47 @@ void sendSensor() {
   lcd.println(distance);
   lcd.setCursor(0, 1);
   lcd.print("Lembab: ");  // tampilkan lembab
-  lcd.print(humadityValue);
+  lcd.print(humidityValue);
 
   delay(1000);
+}
+
+// LED dimatikan semua
+void turnOffAllLEDs() {
+  led1.off();
+  led2.off();
+  led3.off();
+  digitalWrite(LED_RED_PIN, LOW);
+  digitalWrite(LED_YELLOW_PIN, LOW);
+  digitalWrite(LED_GREEN_PIN, LOW);
+}
+
+// LED hijau dinyalakan
+void setSafeLEDs() {
+  led1.off();
+  led2.off();
+  led3.on();
+  digitalWrite(LED_RED_PIN, LOW);
+  digitalWrite(LED_YELLOW_PIN, LOW);
+  digitalWrite(LED_GREEN_PIN, HIGH);
+}
+
+// LED kuning dinyalakan
+void setWarningLEDs() {
+  led1.off();
+  led2.on();
+  led3.off();
+  digitalWrite(LED_RED_PIN, LOW);
+  digitalWrite(LED_YELLOW_PIN, HIGH);
+  digitalWrite(LED_GREEN_PIN, LOW);
+}
+
+// LED merah dinyalakan
+void setDangerLEDs() {
+  led1.on();
+  led2.off();
+  led3.off();
+  digitalWrite(LED_RED_PIN, HIGH);
+  digitalWrite(LED_YELLOW_PIN, LOW);
+  digitalWrite(LED_GREEN_PIN, LOW);
 }

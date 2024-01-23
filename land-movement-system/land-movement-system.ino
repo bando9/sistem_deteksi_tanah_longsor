@@ -16,43 +16,36 @@
 
 // Blynk Setup
 BlynkTimer timer;
-WidgetLED led1(V4);
-WidgetLED led2(V5);
-WidgetLED led3(V6);
+WidgetLED led1(V6);
+WidgetLED led2(V7);
+WidgetLED led3(V8);
 
 // LCD Setup
 LiquidCrystal_I2C lcd(0x27, 16, 2);  // Default address 0x27
 
 // Blynk Authentication and WiFi Credentials
 char auth[] = "BmNHecm3Rsia6ZL7dQwpNo_Rg5zSDgBJ";
-char ssid[] = "UIN_Walisongo-AX";
-char pass[] = "";
+// char ssid[] = "UIN_Walisongo-AX";
+// char pass[] = "";
+char ssid[] = "realme_C53";
+char pass[] = "12345678";
 
 // Sensor Variables
 long pulseDuration;
-float distance;
+int currentDistance;
+int deltaDistance;
 int rainStatus;
 int humidityValue;
 
+int previousDistance = 0;
+const int thresholdDistance = 5;
+
 // Thresholds
-const int thresholdSafe = 5;
-const int thresholdWarning = 15;
-const int thresholdDanger = 30;
-const int humadityThresholdLow = 40;
-const int humadityThresholdHigh = 80;
-
-// Timer Event for Blynk
-void myTimerEvent() {
-  // Read humadity from analog pin A0
-  humidityValue = analogRead(A0);
-  float voltage = humidityValue * (5.0 / 1023.0);
-  humidityValue = map(humidityValue, 400, 1023, 100, 0);
-
-  // Send sensor data to Blynk app
-  Blynk.virtualWrite(V1, distance);
-  Blynk.virtualWrite(V2, humidityValue);
-  Blynk.virtualWrite(V3, voltage);
-}
+const int distanceThresholdSafe = 15;
+const int distanceThresholdWarning = 30;
+// const int thresholdDanger = 30;
+const int humidityThresholdSafe = 40;
+const int humidityThresholdWarning = 80;
 
 // Setup Function
 void setup() {
@@ -84,7 +77,6 @@ void setup() {
 
   // Connect to Blynk
   Blynk.begin(auth, ssid, pass, "iot.serangkota.go.id", 8080);
-  timer.setInterval(1000L, myTimerEvent);  // 1000L = 1 sec
 
   Serial.println("sistem siap digunakan");
   Blynk.notify("Land Movement Ready");
@@ -97,9 +89,14 @@ void loop() {
   timer.run();
 }
 
-
 // Function to Read and Send Sensor Data
 void sendSensor() {
+
+  // Read humadity from analog pin A0
+  humidityValue = analogRead(A0);
+  float voltage = humidityValue * (5.0 / 1023.0);
+  humidityValue = map(humidityValue, 400, 1023, 100, 0);
+
   // Read Raindrop Sensor
   rainStatus = digitalRead(RAIN_SENSOR_PIN);
 
@@ -112,56 +109,103 @@ void sendSensor() {
 
   // Measure Pulse Duration
   pulseDuration = pulseIn(ECHO_PIN, HIGH);
-  distance = pulseDuration * 0.034 / 2;
+  currentDistance = pulseDuration * 0.034 / 2;
+
+  currentDistance = max(currentDistance, 0);
 
   Serial.println("==== ====");
-  Serial.println("Raindrop Sensor");
-  Serial.print("Digital value : ");
-  Serial.println(rainStatus);
-
-  if (rainStatus == 0) {
-    Serial.println("hujan");
-    led3.on();
-    digitalWrite(LED_GREEN_PIN, HIGH);
-    delay(500);
-    digitalWrite(LED_GREEN_PIN, LOW);
-  }
-
-  Serial.print("Jarak: ");
-  Serial.println(distance);
+  Serial.print("Status Hujan : ");
+  Serial.println((rainStatus == 0) ? "Ya" : "Tidak");
 
   Serial.print("Lembab: ");
   Serial.println(humidityValue);
 
-  // System Algorithm
-  if (humidityValue > 40 || distance > 33) {
-    Serial.println("kelembaban tinggi, bergerak agak jauh");
-    setDangerLEDs();
-  } else if (humidityValue > 40 || distance < 17) {
-    Serial.println("kelembaban tinggi, bergerak agak jauh");
-    setDangerLEDs();
-  } else if (humidityValue > 30 || distance > 30) {
-    Serial.println("kelembaban sedang, bergerak");
-    setWarningLEDs();
-  } else if (humidityValue > 30 || distance < 20) {
-    Serial.println("kelembaban sedang, bergerak");
-    setWarningLEDs();
-  } else {
-    // No significant movement
-    turnOffAllLEDs();
-  }
+  Serial.print("Jarak Awal: ");
+  Serial.println(previousDistance);
+
+  Serial.print("Jarak Akhir: ");
+  Serial.println(currentDistance);
+
+  deltaDistance = currentDistance - previousDistance;
+
+  deltaDistance = abs(deltaDistance);
+
+  Serial.print("Delta Jarak: ");
+  Serial.println(deltaDistance);
 
   // Display on LCD
   lcd.home();
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Jarak:");  // tampilkan distance
-  lcd.println(distance);
+  lcd.print("Jarak Awal:");  // tampilkan distance
+  lcd.print(previousDistance);
   lcd.setCursor(0, 1);
-  lcd.print("Lembab: ");  // tampilkan lembab
-  lcd.print(humidityValue);
+  lcd.print("Jarak Akhir: ");  // tampilkan lembab
+  lcd.print(currentDistance);
 
-  delay(1000);
+  // Send sensor data to Blynk app
+  Blynk.virtualWrite(V1, previousDistance);
+  Blynk.virtualWrite(V2, currentDistance);
+  Blynk.virtualWrite(V3, deltaDistance);
+  Blynk.virtualWrite(V4, humidityValue);
+  Blynk.virtualWrite(V5, rainStatus);
+
+  if (deltaDistance > 5) {
+    Serial.println("Perubahan jarak yang signifikan terdeteksi!");
+  }
+
+  previousDistance = currentDistance;
+
+
+  // // System Algorithm
+  // if (humidityValue > 40 || distance > 33) {
+  //   Serial.println("kelembaban tinggi, bergerak agak jauh");
+  //   setDangerLEDs();
+  // } else if (humidityValue > 40 || distance < 17) {
+  //   Serial.println("kelembaban tinggi, bergerak agak jauh");
+  //   setDangerLEDs();
+  // } else if (humidityValue > 30 || distance > 30) {
+  //   Serial.println("kelembaban sedang, bergerak");
+  //   setWarningLEDs();
+  // } else if (humidityValue > 30 || distance < 20) {
+  //   Serial.println("kelembaban sedang, bergerak");
+  //   setWarningLEDs();
+  // } else {
+  //   // No significant movement
+  //   turnOffAllLEDs();
+  // }
+
+  // // logika 2
+  // if (rainStatus == HIGH) {
+  //   Serial.println("hujan");
+  //   led3.on();
+  //   digitalWrite(LED_GREEN_PIN, HIGH);
+  //   delay(500);
+  //   digitalWrite(LED_GREEN_PIN, LOW);
+  // }
+
+  // if (humidityValue > humidityThresholdWarning) {
+  //   Serial.println("lembab banget");
+  //   setDangerLEDs();
+  // } else if (humidityValue > humidityThresholdSafe) {
+  //   Serial.println("lembab");
+  //   setWarningLEDs();
+  // } else {
+  //   turnOffAllLEDs();
+  // }
+
+  // if (distance > distanceThresholdWarning) {
+  //   Serial.println("bergrak jauh banget");
+  //   setDangerLEDs();
+  // } else if (distance > distanceThresholdSafe) {
+  //   Serial.println("bergerak");
+  //   setWarningLEDs();
+  // } else {
+  //   turnOffAllLEDs();
+  // }
+  
+
+  delay(5000);
 }
 
 // LED dimatikan semua

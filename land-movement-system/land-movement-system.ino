@@ -40,12 +40,12 @@ int humidityValue;
 int previousDistance = 0;
 const int thresholdDistance = 5;
 
-// Thresholds
-const int distanceThresholdSafe = 15;
-const int distanceThresholdWarning = 30;
-// const int thresholdDanger = 30;
-const int humidityThresholdSafe = 40;
-const int humidityThresholdWarning = 80;
+// Threshold
+const int distanceThresholdSafe = 3;
+const int distanceThresholdWarning = 6;
+const int distanceThresholdDanger = 9;
+const int humidityThresholdWarning = 50;
+const int humidityThresholdDanger = 80;
 
 // Setup Function
 void setup() {
@@ -157,7 +157,28 @@ void sendSensor() {
   previousDistance = currentDistance;
 
 
-  // // System Algorithm
+  // System Algorithm
+  if (rainStatus == 0) {
+    Serial.println("status: hujan");
+    Blynk.notify("Status: Hujan");
+  }
+
+  if (humidityValue > humidityThresholdDanger || deltaDistance > distanceThresholdDanger) {
+    Serial.println("Status: Bahaya");
+    setDangerLEDs();
+  } else if (humidityValue > humidityThresholdWarning || deltaDistance > distanceThresholdWarning) {
+    Serial.println("Status: Bahaya");
+    setWarningLEDs();
+  } else if (deltaDistance > distanceThresholdSafe) {
+    Serial.println("Status: Bahaya");
+    setSafeLEDs();
+  } else {
+    Serial.println("Status: System Still Working");
+    turnOffAllLEDs();
+  }
+
+
+  // logika 1
   // if (humidityValue > 40 || distance > 33) {
   //   Serial.println("kelembaban tinggi, bergerak agak jauh");
   //   setDangerLEDs();

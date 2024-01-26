@@ -1,0 +1,71 @@
+// data terdeteksi sensor
+let rain = 0;
+let humidityValue = 40;
+let deltaDistance = 0;
+
+// batas kelembaban
+const humidityThresholdWarning = 50;
+const humidityThresholdDanger = 80;
+
+// batas jarak
+const thresholdSafe = 3;
+const thresholdWarning = 6;
+const thresholdDanger = 9;
+
+if (rain == 0) {
+    console.log("kirim notifikasi blynk 'sedang hujan'. \nstatus: hujan")
+}
+    
+if (humidityValue > humidityThresholdDanger || deltaDistance > thresholdDanger) {
+    console.log("status: bahaya")
+} else if (humidityValue > humidityThresholdWarning || (deltaDistance > thresholdWarning)) {
+    console.log("status: waspada")
+} else if (deltaDistance > thresholdSafe) {
+    console.log("status: aman")
+} else {
+    console.log("status: system working")
+}
+
+
+/**
+    kondisi ini tidak realistis karena tidak semua kondisi bakal turun hujan
+    
+    kita tahu bahwa hujan bisa terjadi kapan saja
+    kelembaban juga bisa terjadi meski tidak hujan??  klo ini kemungkinan kecil, karena lembab pasti ada air, air di lereng pasti ada hujan.
+    tapi tidak juga, karena setelah hujan. dimana hujan sudah berhenti. lembab pasti masih terjadi
+    objek bisa bergerak kapan saja, karena tanah bergerak bebas kapan pun selama bidang gelincir gesekannya tipiz.
+    jadi syarat tergelincir adlaah ketika fg bidang gelincir < g gravitasi.
+    hal ini dipicu ketika ada air yang membuat tanah memiliki fg gelincir < dari g gravitasi
+
+    
+    =============================================
+    
+    
+    selanjutnya, kita buat batasan.
+    raindrop hanya mengirim status hujan dengan notifikiasi blynk. status di blynk. entah bentuk tulisan, atau apapun.
+    jadi nanti, ketika hujan, intinya orang yang jauh ngerti, kalo ini sedang terjadi hujan di sekitar alat.
+    saran: dikembangkan baik dengan memindahkan ke signal analog, maupun sensor lain.
+    
+    sampai disini
+    menjelaskan batas"
+    jika lembab naik hingga 80, atau jarak bergerak melebihi 20cm, maka disebut berbahaya
+    dimana ketika di alam asli, kita tau, keduanya bisa berjalan dengan benar ataupun salah.
+    bisa jadi, lembab naik tapi ga bahaya, tapi bisa juga jika objek bergerak, juga disebut berbahaya.
+    
+    disini kita bisa tahu, bahwa kita bisa mengendalikan berbahaya tidaknya dengan variabel perubahan jarak.
+    dengan variabel ini, kita bisa mengambil kesimpulan jika lebih dari sekian, akan masuk ke dalam kategori a, b, dan c.
+    ada dua lembab, 50 dan 80.
+    panjang, kita menggunakan 3, 5, 7 ??
+    kalo lebih dari 3 aman, lebih dari 5, waspada, lebih dari 7 bahaya.
+    coba implementasikan logikanya.
+    --
+    dasarnya, di alam bebas. kalo lembab bisa naik sendiri, kalo jatuh bisa jatuh sendiri.
+    apakah terkait antara lembab dan pergerakannya ????
+    outputnya, kita mau kategori, ketika d-jarak 9, itu bahaya
+    d-jarak 6 itu wasapada, ketika d-jarak 3 itu aman saja.
+    kalo lembab naik sampe 50, itu waspada, kalo naik sampe 80, itu bahaya. begitu??
+    bismillah coba implementasi.
+    
+    titik buntu 1, kalo jarak udah bergerak ke posisi 2, sistem akan mendeteksi kalo posisi 2 merupakan posisi awal.
+
+*/

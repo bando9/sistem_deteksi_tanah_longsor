@@ -1,0 +1,49 @@
+
+
+
+  // logika 1
+  // if (humidityValue > 40 || distance > 33) {
+  //   Serial.println("kelembaban tinggi, bergerak agak jauh");
+  //   setDangerLEDs();
+  // } else if (humidityValue > 40 || distance < 17) {
+  //   Serial.println("kelembaban tinggi, bergerak agak jauh");
+  //   setDangerLEDs();
+  // } else if (humidityValue > 30 || distance > 30) {
+  //   Serial.println("kelembaban sedang, bergerak");
+  //   setWarningLEDs();
+  // } else if (humidityValue > 30 || distance < 20) {
+  //   Serial.println("kelembaban sedang, bergerak");
+  //   setWarningLEDs();
+  // } else {
+  //   // No significant movement
+  //   turnOffAllLEDs();
+  // }
+
+  // // logika 2
+  // if (rainStatus == HIGH) {
+  //   Serial.println("hujan");
+  //   led3.on();
+  //   digitalWrite(LED_GREEN_PIN, HIGH);
+  //   delay(500);
+  //   digitalWrite(LED_GREEN_PIN, LOW);
+  // }
+
+  // if (humidityValue > humidityThresholdWarning) {
+  //   Serial.println("lembab banget");
+  //   setDangerLEDs();
+  // } else if (humidityValue > humidityThresholdSafe) {
+  //   Serial.println("lembab");
+  //   setWarningLEDs();
+  // } else {
+  //   turnOffAllLEDs();
+  // }
+
+  // if (distance > distanceThresholdWarning) {
+  //   Serial.println("bergrak jauh banget");
+  //   setDangerLEDs();
+  // } else if (distance > distanceThresholdSafe) {
+  //   Serial.println("bergerak");
+  //   setWarningLEDs();
+  // } else {
+  //   turnOffAllLEDs();
+  // }

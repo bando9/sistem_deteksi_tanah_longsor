@@ -25,10 +25,14 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);  // Default address 0x27
 
 // Blynk Authentication and WiFi Credentials
 char auth[] = "BmNHecm3Rsia6ZL7dQwpNo_Rg5zSDgBJ";
-// char ssid[] = "UIN_Walisongo-AX";
-// char pass[] = "";
-char ssid[] = "realme_C53";
-char pass[] = "12345678";
+
+// WiFi 1
+char ssid[] = "UIN_Walisongo-AX";
+char pass[] = "";
+
+// WiFi 2
+// char ssid[] = "realme_C53";
+// char pass[] = "12345678";
 
 // Sensor Variables
 long pulseDuration;
@@ -134,14 +138,30 @@ void sendSensor() {
   Serial.println(deltaDistance);
 
   // Display on LCD
+  // Display 1
   lcd.home();
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Jarak Awal:");  // tampilkan distance
   lcd.print(previousDistance);
+  lcd.print(" cm");
   lcd.setCursor(0, 1);
   lcd.print("Jarak Akhir: ");  // tampilkan lembab
   lcd.print(currentDistance);
+  lcd.print(" cm");
+  delay(3500);
+
+  // Display 2
+  lcd.home();
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Beda Jarak: ");
+  lcd.print(deltaDistance);
+  lcd.print(" cm");
+  lcd.setCursor(0,1);
+  lcd.print("Lembab: ");
+  lcd.print(humidityValue);
+  lcd.print(" %");
 
   // Send sensor data to Blynk app
   Blynk.virtualWrite(V1, previousDistance);
@@ -175,56 +195,7 @@ void sendSensor() {
   } else {
     Serial.println("Status: System Still Working");
     turnOffAllLEDs();
-  }
-
-
-  // logika 1
-  // if (humidityValue > 40 || distance > 33) {
-  //   Serial.println("kelembaban tinggi, bergerak agak jauh");
-  //   setDangerLEDs();
-  // } else if (humidityValue > 40 || distance < 17) {
-  //   Serial.println("kelembaban tinggi, bergerak agak jauh");
-  //   setDangerLEDs();
-  // } else if (humidityValue > 30 || distance > 30) {
-  //   Serial.println("kelembaban sedang, bergerak");
-  //   setWarningLEDs();
-  // } else if (humidityValue > 30 || distance < 20) {
-  //   Serial.println("kelembaban sedang, bergerak");
-  //   setWarningLEDs();
-  // } else {
-  //   // No significant movement
-  //   turnOffAllLEDs();
-  // }
-
-  // // logika 2
-  // if (rainStatus == HIGH) {
-  //   Serial.println("hujan");
-  //   led3.on();
-  //   digitalWrite(LED_GREEN_PIN, HIGH);
-  //   delay(500);
-  //   digitalWrite(LED_GREEN_PIN, LOW);
-  // }
-
-  // if (humidityValue > humidityThresholdWarning) {
-  //   Serial.println("lembab banget");
-  //   setDangerLEDs();
-  // } else if (humidityValue > humidityThresholdSafe) {
-  //   Serial.println("lembab");
-  //   setWarningLEDs();
-  // } else {
-  //   turnOffAllLEDs();
-  // }
-
-  // if (distance > distanceThresholdWarning) {
-  //   Serial.println("bergrak jauh banget");
-  //   setDangerLEDs();
-  // } else if (distance > distanceThresholdSafe) {
-  //   Serial.println("bergerak");
-  //   setWarningLEDs();
-  // } else {
-  //   turnOffAllLEDs();
-  // }
-  
+  }  
 
   delay(5000);
 }

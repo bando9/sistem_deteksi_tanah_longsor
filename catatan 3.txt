@@ -1,0 +1,14 @@
+
+  // if (humidityValue>=850) {
+  //   Serial.println("DRY+");
+  // } else if (humidityValue >= 650) {
+  //   Serial.println("DRY");
+  // } else if (humidityValue >= 300) {
+  //   Serial.println("NOR");
+  // } else if (humidityValue >= 200) {
+  //   Serial.println("WET");
+  // } else if (humidityValue >=0) {
+  //   Serial.println("WET+");
+  // } else {
+  //   Serial.println("Sensor tidak terbaca");
+  // }

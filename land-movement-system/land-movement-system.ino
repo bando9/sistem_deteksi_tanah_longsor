@@ -45,11 +45,11 @@ int previousDistance = 0;
 const int thresholdDistance = 5;
 
 // Threshold
-const int distanceThresholdSafe = 3;
-const int distanceThresholdWarning = 6;
-const int distanceThresholdDanger = 9;
-const int humidityThresholdWarning = 50;
-const int humidityThresholdDanger = 80;
+const int distanceThresholdSafe = 2;
+const int distanceThresholdWarning = 4;
+const int distanceThresholdDanger = 6;
+const int humidityThresholdWarning = 408;
+const int humidityThresholdDanger = 204;
 
 // Setup Function
 void setup() {
@@ -99,7 +99,7 @@ void sendSensor() {
   // Read humadity from analog pin A0
   humidityValue = analogRead(A0);
   float voltage = humidityValue * (5.0 / 1023.0);
-  humidityValue = map(humidityValue, 400, 1023, 100, 0);
+  // humidityValue = map(humidityValue, 400, 1023, 100, 0); // coba nilai sesungguhnya
 
   // Read Raindrop Sensor
   rainStatus = digitalRead(RAIN_SENSOR_PIN);
@@ -118,24 +118,30 @@ void sendSensor() {
   currentDistance = max(currentDistance, 0);
 
   Serial.println("==== ====");
+  // Serial.print("Nilai Raindrop: ");
+  // Serial.println(rainStatus);
   Serial.print("Status Hujan : ");
   Serial.println((rainStatus == 0) ? "Ya" : "Tidak");
 
-  Serial.print("Lembab: ");
-  Serial.println(humidityValue);
+  // Serial.print("Lembab: ");
+  // Serial.print(humidityValue);
+  // Serial.println(" %");
 
   Serial.print("Jarak Awal: ");
-  Serial.println(previousDistance);
+  Serial.print(previousDistance);
+  Serial.println(" cm");
 
   Serial.print("Jarak Akhir: ");
-  Serial.println(currentDistance);
+  Serial.print(currentDistance);
+  Serial.println(" cm");
 
   deltaDistance = currentDistance - previousDistance;
 
   deltaDistance = abs(deltaDistance);
 
-  Serial.print("Delta Jarak: ");
-  Serial.println(deltaDistance);
+  Serial.print("Beda Jarak: ");
+  Serial.print(deltaDistance);
+  Serial.println(" cm");
 
   // Display on LCD
   // Display 1
@@ -154,14 +160,31 @@ void sendSensor() {
   // Display 2
   lcd.home();
   lcd.clear();
-  lcd.setCursor(0,0);
+  lcd.setCursor(0, 0);
   lcd.print("Beda Jarak: ");
   lcd.print(deltaDistance);
   lcd.print(" cm");
-  lcd.setCursor(0,1);
+  lcd.setCursor(0, 1);
   lcd.print("Lembab: ");
-  lcd.print(humidityValue);
-  lcd.print(" %");
+  Serial.print("Lembab: ");
+  if (humidityValue >= 816) {
+    Serial.println("Kering+");
+    lcd.print("Kering+");
+  } else if (humidityValue >= 612) {
+    Serial.println("Kering");
+    lcd.print("Kering");
+  } else if (humidityValue >= 408) {
+    Serial.println("Normal");
+    lcd.print("Normal");
+  } else if (humidityValue >= 204) {
+    Serial.println("Basah");
+    lcd.print("Basah");
+  } else if (humidityValue >= 0) {
+    Serial.println("Basah+");
+    lcd.print("Basah+");
+  } else {
+    Serial.println("Sensor tidak terbaca");
+  }
 
   // Send sensor data to Blynk app
   Blynk.virtualWrite(V1, previousDistance);
@@ -179,25 +202,39 @@ void sendSensor() {
 
   // System Algorithm
   if (rainStatus == 0) {
-    Serial.println("status: hujan");
+    Serial.println("Status hujan dikirim!");
     Blynk.notify("Status: Hujan");
   }
 
-  if (humidityValue > humidityThresholdDanger || deltaDistance > distanceThresholdDanger) {
+  // if (humidityValue >= 816) {
+  //   Serial.println("DRY+");
+  // } else if (humidityValue >= 612) {
+  //   Serial.println("DRY");
+  // } else if (humidityValue >= 408) {
+  //   Serial.println("NOR");
+  // } else if (humidityValue >= 204) {
+  //   Serial.println("WET");
+  // } else if (humidityValue >= 0) {
+  //   Serial.println("WET+");
+  // } else {
+  //   Serial.println("Sensor tidak terbaca");
+  // }
+
+  if (humidityValue < humidityThresholdDanger || deltaDistance > distanceThresholdDanger) {
     Serial.println("Status: Bahaya");
     setDangerLEDs();
-  } else if (humidityValue > humidityThresholdWarning || deltaDistance > distanceThresholdWarning) {
-    Serial.println("Status: Bahaya");
+  } else if (humidityValue < humidityThresholdWarning || deltaDistance > distanceThresholdWarning) {
+    Serial.println("Status: Waspada");
     setWarningLEDs();
   } else if (deltaDistance > distanceThresholdSafe) {
-    Serial.println("Status: Bahaya");
+    Serial.println("Status: Aman");
     setSafeLEDs();
   } else {
     Serial.println("Status: System Still Working");
     turnOffAllLEDs();
-  }  
+  }
 
-  delay(5000);
+  delay(3000);
 }
 
 // LED dimatikan semua

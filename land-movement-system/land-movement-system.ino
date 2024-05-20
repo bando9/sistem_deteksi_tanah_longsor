@@ -5,12 +5,12 @@
 
 // Pin Definitions
 #define BLYNK_PRINT Serial
-#define ECHO_PIN D3         // Pin Trigger sensor ultrasonik
-#define TRIG_PIN D4         // Pin Echo sensor ultrasonik
-#define RAIN_SENSOR_PIN D5  // Pin sensor raindrop
-#define LED_RED_PIN D6      // Pin LED bahaya (merah)
-#define LED_YELLOW_PIN D7   // Pin LED waspada (kuning)
-#define LED_GREEN_PIN D8    // Pin LED aman (hijau)
+#define ECHO_PIN D3         // trigger pin of the ultrasonic sensor
+#define TRIG_PIN D4         // echo pin of the ultrasonic sensor
+#define RAIN_SENSOR_PIN D5  // raindrop sensor pin
+#define LED_RED_PIN D6      // LED red pin (bahaya)
+#define LED_YELLOW_PIN D7   // LED yellow pin (waspada)
+#define LED_GREEN_PIN D8    // LED green pin (aman)
 // scl d1 (LCD)
 // sda d2 (LCD)
 
@@ -100,7 +100,6 @@ void sendSensor() {
   // Read humadity from analog pin A0
   humidityValue = analogRead(A0);
   float voltage = humidityValue * (5.0 / 1023.0);
-  // humidityValue = map(humidityValue, 400, 1023, 100, 0); // coba nilai sesungguhnya
 
   // Read Raindrop Sensor
   rainStatus = digitalRead(RAIN_SENSOR_PIN);
@@ -132,6 +131,7 @@ void sendSensor() {
 
   deltaDistance = currentDistance - previousDistance;
 
+  // function abs
   deltaDistance = abs(deltaDistance);
 
   Serial.print("Beda Jarak: ");
@@ -143,11 +143,11 @@ void sendSensor() {
   lcd.home();
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Jarak Awal:");  // tampilkan distance
+  lcd.print("Jarak Awal:");
   lcd.print(previousDistance);
   lcd.print("cm");
   lcd.setCursor(0, 1);
-  lcd.print("Jarak Akhir:");  // tampilkan lembab
+  lcd.print("Jarak Akhir:");
   lcd.print(currentDistance);
   lcd.print("cm");
   delay(3500);
@@ -162,6 +162,8 @@ void sendSensor() {
   lcd.setCursor(0, 1);
   lcd.print("Lembab:");
   Serial.print("Lembab: ");
+
+  // Moisture Category
   if (humidityValue >= 816) {
     Serial.println("Kering+");
     lcd.print("Kering+");
@@ -190,7 +192,6 @@ void sendSensor() {
   Blynk.virtualWrite(V1, previousDistance);
   Blynk.virtualWrite(V2, currentDistance);
   Blynk.virtualWrite(V3, deltaDistance);
-  // Blynk.virtualWrite(V4, humidityValue);
   Blynk.virtualWrite(V5, rainStatus);
 
   if (deltaDistance > 5) {
@@ -198,7 +199,6 @@ void sendSensor() {
   }
 
   previousDistance = currentDistance;
-
 
   // System Algorithm
   if (rainStatus == 0) {
@@ -223,7 +223,7 @@ void sendSensor() {
   delay(3000);
 }
 
-// LED dimatikan semua
+// Turn off all LEDs
 void turnOffAllLEDs() {
   led1.off();
   led2.off();
@@ -233,7 +233,7 @@ void turnOffAllLEDs() {
   digitalWrite(LED_GREEN_PIN, LOW);
 }
 
-// LED hijau dinyalakan
+// Turn on the green LED
 void setSafeLEDs() {
   led1.off();
   led2.off();
@@ -243,7 +243,7 @@ void setSafeLEDs() {
   digitalWrite(LED_GREEN_PIN, HIGH);
 }
 
-// LED kuning dinyalakan
+// Turn on the yellow LED
 void setWarningLEDs() {
   led1.off();
   led2.on();
@@ -253,7 +253,7 @@ void setWarningLEDs() {
   digitalWrite(LED_GREEN_PIN, LOW);
 }
 
-// LED merah dinyalakan
+// Turn on the red LED
 void setDangerLEDs() {
   led1.on();
   led2.off();

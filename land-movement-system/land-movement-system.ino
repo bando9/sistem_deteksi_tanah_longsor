@@ -52,6 +52,8 @@ const int humidityThresholdSafe = 612;
 const int humidityThresholdWarning = 408;
 const int humidityThresholdDanger = 254;
 
+bool systemEnabled = true;
+
 // Setup Function
 void setup() {
   // Start Serial Communication
@@ -87,9 +89,24 @@ void setup() {
   Blynk.notify("Land Movement Ready");
 }
 
+// control system
+BLYNK_WRITE(V10) {
+  int pinValue = param.asInt();
+  if(pinValue == HIGH) {
+    Serial.println("Tombol ditekan, mematikan semua system");
+    systemEnabled = false;
+    turnOffAllLEDs();
+  } else {
+    Serial.println("Tombol dilepas, mengaktifkan kembali system");
+    systemEnabled = true;
+  }
+}
+
 // Loop Function
 void loop() {
-  sendSensor();
+  if(systemEnabled) {
+    sendSensor();
+  }
   Blynk.run();
   timer.run();
 }

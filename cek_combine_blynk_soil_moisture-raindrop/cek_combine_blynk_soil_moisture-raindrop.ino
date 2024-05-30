@@ -25,7 +25,7 @@ void setup() {
   pinMode(sensor_rain, INPUT);
 
   Blynk.begin(auth, ssid, pass, "iot.serangkota.go.id", 8080);
-  timer.setInterval(1000L, myTimerEvent); // 1000L = 1 detik
+  // timer.setInterval(1000L, myTimerEvent); // 1000L = 1 detik
 
   Serial.println("siap digunakan");
   Blynk.notify("Rain Detector Ready");

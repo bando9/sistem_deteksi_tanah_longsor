@@ -27,12 +27,12 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);  // Default address 0x27
 char auth[] = "BmNHecm3Rsia6ZL7dQwpNo_Rg5zSDgBJ";
 
 // WiFi 1
-char ssid[] = "UIN_Walisongo-AX";
-char pass[] = "";
+// char ssid[] = "UIN_Walisongo-AX";
+// char pass[] = "";
 
 // WiFi 2
-// char ssid[] = "realme_C53";
-// char pass[] = "12345678";
+char ssid[] = "realme_C53";
+char pass[] = "12345678";
 
 // Sensor Variables
 long pulseDuration;

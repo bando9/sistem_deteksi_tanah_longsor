@@ -1,11 +1,10 @@
-// #define BLYNK_PRINT Serial
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
 
 // Token Blynk Anda
 char auth[] = "BmNHecm3Rsia6ZL7dQwpNo_Rg5zSDgBJ";
 
-// // Koneksi WiFi
+// Koneksi WiFi
 char ssid[] = "realme_C53";
 char pass[] = "12345678";
 
@@ -14,9 +13,11 @@ int led1 = D4;  // Pin LED 1
 int led2 = D3;  // Pin LED 2
 int led3 = D2;  // Pin LED 3
 
-WidgetLED led_1(V6);   // led 1 blynk
-WidgetLED led_2(V7);   // led 2 blynk
-WidgetLED led_3(V8);   // led 3 blynk
+WidgetLED led_1(V6);   // LED 1 Blynk
+WidgetLED led_2(V7);   // LED 2 Blynk
+WidgetLED led_3(V8);   // LED 3 Blynk
+
+bool kedipKedipEnabled = true;  // Flag untuk mengontrol kedipKedip
 
 void setup() {
   // Serial monitor untuk debugging
@@ -29,21 +30,20 @@ void setup() {
   
   // Menghubungkan ke Blynk
   Blynk.begin(auth, ssid, pass, "iot.serangkota.go.id", 8080);
-  Serial.println("sistem siap digunakan");  
+  Serial.println("Sistem siap digunakan");  
 }
-
 
 BLYNK_WRITE(V10) {  // Tombol untuk mematikan semua LED
   int pinValue = param.asInt();  // Mendapatkan nilai dari tombol
 
   if (pinValue == HIGH) {  // Jika tombol ditekan
-    
-    Serial.println("nilai pin: ");
-    Serial.println(pinValue);
-
-    kedipKedip();
+    Serial.println("Tombol ditekan, mematikan semua LED");
+    kedipKedipEnabled = false;  // Menonaktifkan kedipKedip
+    turnOffAllLED();
+  } else {
+    Serial.println("Tombol dilepas, mengaktifkan kembali kedipKedip");
+    kedipKedipEnabled = true;  // Mengaktifkan kembali kedipKedip
   }
-
 }
 
 void turnOffAllLED(){
@@ -77,8 +77,10 @@ void kedipKedip(){
   delay(500);
 }
 
-
 void loop() {
-  // kedipKedip();
   Blynk.run();  // Menjalankan Blynk
+  
+  if (kedipKedipEnabled) {
+    kedipKedip();  // Menjalankan kedipKedip jika flag diizinkan
+  }
 }

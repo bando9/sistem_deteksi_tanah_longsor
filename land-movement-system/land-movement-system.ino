@@ -99,6 +99,7 @@ BLYNK_WRITE(V10) {
   } else {
     Serial.println("Tombol dilepas, mengaktifkan kembali system");
     systemEnabled = true;
+    resetSystem();
   }
 }
 
@@ -113,6 +114,7 @@ void loop() {
 
 // Function to Read and Send Sensor Data
 void sendSensor() {
+  if (!systemEnabled) return;
 
   // Read humadity from analog pin A0
   humidityValue = analogRead(A0);
@@ -169,6 +171,8 @@ void sendSensor() {
   lcd.print("cm");
   delay(3500);
 
+  if(!systemEnabled) return;
+
   // Display 2
   lcd.home();
   lcd.clear();
@@ -205,6 +209,8 @@ void sendSensor() {
     Serial.println("Sensor tidak terbaca");
   }
 
+  if(!systemEnabled) return;
+
   // Send sensor data to Blynk app
   Blynk.virtualWrite(V1, previousDistance);
   Blynk.virtualWrite(V2, currentDistance);
@@ -223,6 +229,8 @@ void sendSensor() {
     Blynk.notify("Status: Hujan");
   }
 
+  if(!systemEnabled) return;
+
   if (humidityValue < humidityThresholdDanger || deltaDistance > distanceThresholdDanger) {
     Serial.println("Status: Bahaya");
     setDangerLEDs();
@@ -240,6 +248,17 @@ void sendSensor() {
   delay(3000);
 }
 
+// Function to reset system state
+void resetSystem() {
+  // Reset variables and sytem state
+  previousDistance = 0;
+  currentDistance = 0;
+  deltaDistance = 0;
+  humidityValue = 0;
+  rainStatus = 0;
+  Serial.println("Sistem telah direset");
+}
+
 // Turn off all LEDs
 void turnOffAllLEDs() {
   led1.off();
@@ -252,6 +271,7 @@ void turnOffAllLEDs() {
 
 // Turn on the green LED
 void setSafeLEDs() {
+  if(!systemEnabled) return;
   led1.off();
   led2.off();
   led3.on();
@@ -262,6 +282,7 @@ void setSafeLEDs() {
 
 // Turn on the yellow LED
 void setWarningLEDs() {
+  if(!systemEnabled) return;
   led1.off();
   led2.on();
   led3.off();
@@ -272,6 +293,7 @@ void setWarningLEDs() {
 
 // Turn on the red LED
 void setDangerLEDs() {
+  if(!systemEnabled) return;
   led1.on();
   led2.off();
   led3.off();
